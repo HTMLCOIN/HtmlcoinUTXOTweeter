@@ -1,0 +1,15 @@
+{
+  "name": "htmlcoinwhalepost",
+  "version": "1.0.0",
+  "description": "Node js project to post to twitter when HTMLcoin transactions exceeds a specific transaction value",
+  "main": "htmlcoinGetLatestTxns.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Rohan de Jongh",
+  "license": "MIT",
+  "dependencies": {
+    "node-fetch": "^2.6.7",
+    "twitter-api-v2": "^1.12.0"
+  }  
+}
