@@ -17,7 +17,11 @@ The following dependencies will be installed:
 
 7. Replace the values in the htmlcoinGetLatestTxns.js for appKey, appSecret, accessToken and accessSecret
 
-8. Run "node htmlcoinGetLatestTxns.js" from the root directory of the unzipped folder.
+8. Add new icons if additional icons should be used in tweets. Can be copied from `https://getemoji.com/`.
+
+9. Update blocked address list if needed.
+
+10. Run "node htmlcoinGetLatestTxns.js" from the root directory of the unzipped folder.
 
 ## Console Outputs:
 

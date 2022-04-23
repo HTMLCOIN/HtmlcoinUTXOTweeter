@@ -7,12 +7,14 @@ const BASEDIR = process.cwd();
 const minimumWhaleTxnAmount = 1000000; // Minimum transaction value to trigger alert
 const decimalDivision = 100000000;
 const decimalView = 8;
+const messageIcons = ['🚨', '💰']; // Add icons that will be randomized for each tweet. Add more from https://getemoji.com/ .
+const blockedReceivingAddresses = ['HtVJqijoMd3PyQvvERZ9fp6snNiPdyhSwz', 'Hcb5R86UD9A7X6NWmy6UpW6uVuieVgdMRR', 'HmMWCqmqFSttE1NMAesEao26Zqm3NAqrCX']; // Add addresses to be blocked into this array.
 
 const client = new TwitterApi({
-  appKey: "INSERTKEY",
-  appSecret: "INSERTKEY",
-  accessToken: "INSERTKEY",
-  accessSecret: "INSERTKEY",
+  appKey: 'INSERTKEY',
+  appSecret: 'INSERTKEY',
+  accessToken: 'INSERTKEY',
+  accessSecret: 'INSERTKEY',
 });
 
 // Check if the tracking directory exists and if not, then create it.
@@ -55,54 +57,69 @@ async function main() {
       "https://info.htmlcoin.com/api/recent-txs",
       options
     );
-
+    
     console.log("Looping through latest transactions");
 
     // Loop through the transactions returned from the API call
     for (const transaction of response) {
-      // Check if the transaction hash can be found in the tweeted hashes file and only process it if it is not in the file
-      if (!tweetedHashes.includes(transaction.id)) {
-        // Format the value and fee fields
-        const transactionValue = (
-          parseFloat(transaction.inputValue) / decimalDivision
-        ).toFixed(decimalView);
-        const transactionFee = (
-          parseFloat(transaction.fees) / decimalDivision
-        ).toFixed(decimalView);
 
-        // Check if the transaction value is greater than the minimumWhaleTxnAmount amount
-        if (transactionValue >= minimumWhaleTxnAmount) {
-          console.log(`Processing ${transaction.id}`);
+      let processTweet = true;
 
-          console.log(
-            "--------------------------------------------------------------------------------------------"
+      // Check if receiving addresses can be found in the blocked tweet address list
+      for (i = 0; i < transaction.outputs.length; i++) {
+        if (blockedReceivingAddresses.includes(transaction.outputs[i].address)) {
+          processTweet = false;
+          break;
+        }
+      }
+
+      // Only tweet the transaction if none of the addresses are blocked
+      if(processTweet) {
+        // Check if the transaction hash can be found in the tweeted hashes file and only process it if it is not in the file
+        if (!tweetedHashes.includes(transaction.id)) {
+          // Format the value and fee fields
+          const transactionValue = (
+            Math.floor(parseFloat(transaction.inputValue) / decimalDivision)
           );
-          console.log(`Whale Address: ${transaction.inputs[0].address}`);
-          console.log(`Transaction Amount: ${transactionValue}`);
-          console.log(`Transaction Fee: ${transactionFee}`);
-          console.log(`Transaction Hash: ${transaction.id}`);
-          console.log(
-            `Transaction URL: https://explorer.htmlcoin.com/tx/${transaction.id}`
-          );
+          
+          const transactionFee = (
+            parseFloat(transaction.fees) / decimalDivision
+          ).toFixed(decimalView);
 
-          // Build tweet text
-          const tweetText = `Whale Address: ${transaction.inputs[0].address}\r\nTransaction Amount: ${transactionValue}\r\nTransaction Fee: ${transactionFee}\r\n\r\n\r\nTransaction URL: https://explorer.htmlcoin.com/tx/${transaction.id}`;
+          // Check if the transaction value is greater than the minimumWhaleTxnAmount amount
+          if (transactionValue >= minimumWhaleTxnAmount) {
 
-          console.log(`Tweeting ${transaction.id}`);
+            console.log(`Processing ${transaction.id}`);
 
-          // Tweet from account
-          await client.v1
-            .tweet(tweetText)
-            .then((val) => {
-              console.log(`Tweet posted for ${transaction.id}`);
+            console.log(
+              "--------------------------------------------------------------------------------------------"
+            );
+            console.log(`Transaction Amount: ${transactionValue} HTML`);
+            console.log(`Transaction Fee: ${transactionFee} HTML`);
+            console.log(
+              `Transaction URL: https://info.htmlcoin.com/tx/${transaction.id}`
+            );
 
-              // If tweet was successful, then add the transaction hash to the tweeted hashes array
-              tweetedHashes.push(transaction.id);
-            })
-            .catch((err) => {
-              console.log(`Attempted to post Tweet for ${transaction.id}`);
-              console.log(err);
-            });
+            // Build tweet text
+            const tweetIcon = messageIcons[Math.floor(Math.random()*messageIcons.length)]
+            const tweetText = `${tweetIcon}Whale Transaction Alert${tweetIcon}\r\n\r\nTransaction Amount: ${transactionValue} HTML\r\nTransaction Fee: ${transactionFee} HTML\r\n\r\n\r\nTransaction URL: https://info.htmlcoin.com/tx/${transaction.id}\r\n`;
+            
+            console.log(`Tweeting ${transaction.id}`);
+
+            // Tweet from account
+            await client.v1
+              .tweet(tweetText)
+              .then((val) => {
+                console.log(`Tweet posted for ${transaction.id}`);
+              
+                // If tweet was successful, then add the transaction hash to the tweeted hashes array
+                tweetedHashes.push(transaction.id);
+              })
+              .catch((err) => {
+                console.log(`Attempted to post Tweet for ${transaction.id}`);
+                console.log(err);
+              });
+          }
         }
       }
     }
