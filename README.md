@@ -1,4 +1,4 @@
-# HtmlcoinWhalePost
+# HtmlcoinUTXOTweeter
 Node js project to post to twitter when HTMLcoin transactions exceeds a specific transaction value
 
 1. Go to https://dev.to/codesphere/using-the-twitter-api-with-nodejs-4p3c for tutorial if you want to follow it.
